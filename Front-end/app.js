@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof window !== 'undefined' && window.VITE_API_URL) return window.VITE_API_URL;
       if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.VITE_API_URL) return window.__ENV__.VITE_API_URL;
     } catch (e) {}
-    return 'http://localhost:8000';
+    return 'https://vehicle-fraud-fullstack-project.onrender.com';
   };
   const API_URL = getApiUrl();
   let isBackendConnected = false;
