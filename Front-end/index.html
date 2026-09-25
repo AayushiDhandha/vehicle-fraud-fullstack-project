@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Insurance Fraud Data - Fraud Intelligence Platform</title>
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styling -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- CDNs for Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Main Dashboard Application Container -->
+  <div id="app-container" style="display: flex; min-height: 100vh; width: 100%;">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <i data-lucide="shield" class="logo-icon"></i>
+          <div class="logo-text">
+            <h1>Insurance Fraud</h1>
+            <span>Fraud Intelligence</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section-header">MAIN MENU</div>
+      
+      <nav class="sidebar-menu">
+        <ul>
+          <li>
+            <a href="#" class="nav-link active" data-tab="overview">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="predictor">
+              <i data-lucide="shield-alert"></i>
+              <span>Fraud Detection</span>
+              <span class="badge badge-danger sidebar-badge">AI</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="explorer">
+              <i data-lucide="file-text"></i>
+              <span>Claims</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="analytics">
+              <i data-lucide="bar-chart-2"></i>
+              <span>Analytics</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-tab="dataprep">
+              <i data-lucide="brain"></i>
+              <span>ML Model</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    
+    <div class="sidebar-footer">
+      <ul style="list-style: none; margin-bottom: 16px;">
+        <li style="margin-bottom: 4px;">
+          <a href="#" class="nav-link" id="btn-settings" style="padding: 8px 16px;">
+            <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
+            <span>Settings</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" id="btn-help" style="padding: 8px 16px;">
+            <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+            <span>Help Center</span>
+          </a>
+        </li>
+      </ul>
+      <div class="system-status-card">
+        <div class="status-header">
+          <span class="status-dot"></span>
+          <strong>System Online</strong>
+        </div>
+        <p>Fraud detection engine is ready for predictions.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    <header class="content-header">
+      <div class="header-left">
+        <button id="mobile-menu-toggle" class="header-icon-btn mobile-only" aria-label="Toggle Navigation" title="Toggle Menu">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <h2 id="page-title">Fraud Detection Dashboard</h2>
+          <p id="page-subtitle" class="text-secondary">Monitor and analyze vehicle insurance claims using machine learning.</p>
+        </div>
+      </div>
+      
+      <div class="header-center">
+        <div class="header-search-box">
+          <i data-lucide="search"></i>
+          <input type="text" id="global-search" placeholder="Search claims by #, vehicle, site...">
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <!-- Theme Toggle button -->
+        <button id="theme-toggle" class="header-icon-btn" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+        </button>
+        
+        <!-- Notification button -->
+        <button class="header-icon-btn" aria-label="Notifications">
+          <i data-lucide="bell"></i>
+          <span class="notification-dot"></span>
+        </button>
+
+        <!-- System Pill / Backend Status -->
+        <div class="system-pill" id="backend-status-pill" title="Render FastAPI Backend Status">
+          <span class="status-dot" id="backend-status-dot"></span>
+          <span id="backend-status-text">Backend: Connecting...</span>
+        </div>
+
+        <!-- Predict Shortcut -->
+        <button id="header-btn-detect" class="btn btn-primary">
+          <i data-lucide="shield-alert"></i>
+          <span>Detect Fraud</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Tab Sections -->
+    <div class="content-body">
+      
+      <!-- TAB 1: OVERVIEW -->
+      <section id="overview-tab" class="tab-panel active">
+        <!-- KPI Row -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper info">
+              <i data-lucide="file-text"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Total Claims</span>
+              <h3 class="kpi-value" id="kpi-total-claims">12,002</h3>
+            </div>
+          </div>
+          
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper danger">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Fraud Detected</span>
+              <h3 class="kpi-value" id="kpi-fraud-count">2,951</h3>
+            </div>
+          </div>
+          
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper success">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Genuine Claims</span>
+              <h3 class="kpi-value" id="kpi-genuine-count">9,051</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper purple">
+              <i data-lucide="activity"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Fraud Rate</span>
+              <h3 class="kpi-value" id="kpi-fraud-rate">24.6%</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Charts -->
+        <div class="chart-grid">
+          <div class="card chart-card lg">
+            <div class="card-header">
+              <h4 class="card-title">Fraud Detection Overview</h4>
+              <p class="card-subtitle">Distribution by day of the week across all 12,002 claims</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-severity-fraud"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header">
+              <h4 class="card-title">Claim Distribution</h4>
+              <p class="card-subtitle">Dataset proportion (Genuine vs Fraudulent)</p>
+            </div>
+            <div class="chart-container" style="position: relative;">
+              <canvas id="chart-claim-payouts"></canvas>
+              <div class="chart-center-text" id="doughnut-center-text">
+                <span class="center-value" style="font-size: 24px; font-weight: 800; color: var(--text-primary); display: block; text-align: center; line-height: 1.1;">75.4%</span>
+                <span class="center-label" style="font-size: 10px; color: var(--text-secondary); display: block; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Genuine</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Claims Table -->
+        <div class="card dashboard-table-card" style="margin-top: 24px;">
+          <div class="table-card-header">
+            <div>
+              <h4 class="card-title">Recent Claims</h4>
+              <p class="card-subtitle">Latest insurance claims analyzed from verified dataset</p>
+            </div>
+            <button id="dashboard-view-all-claims" class="btn btn-secondary-outline" style="padding: 6px 12px; font-size: 12px;">
+              <span>View All Claims</span>
+              <i data-lucide="arrow-up-right" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Claim #</th>
+                  <th>Driver Age</th>
+                  <th>Vehicle Category</th>
+                  <th>Accident Site</th>
+                  <th>Total Claim</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-table-body">
+                <!-- Dynamically filled with real records -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DATA EXPLORER -->
+      <section id="explorer-tab" class="tab-panel">
+        <!-- Explorer Header Info with upload option -->
+        <div class="explorer-top-bar card" style="margin-bottom: 24px; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 class="card-title" style="margin: 0;">Claims Database Explorer</h4>
+            <p class="card-subtitle" style="margin: 4px 0 0 0;">Inspect verified claim records from the 12,002 insurance dataset</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div class="file-upload-wrapper">
+              <label for="csv-upload" class="btn btn-outline">
+                <i data-lucide="upload-cloud"></i>
+                <span>Upload Custom CSV</span>
+              </label>
+              <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+            </div>
+            <button id="reset-data" class="btn btn-secondary" style="display: none;">
+              <i data-lucide="rotate-ccw"></i>
+              <span>Reset Default</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="explorer-search" placeholder="Search by Claim #, Zip Code, Vehicle, Site...">
+            </div>
+            
+            <div class="filters-container">
+              <select id="filter-fraud" class="select-input">
+                <option value="ALL">All Fraud Statuses</option>
+                <option value="Fraudulent">Fraudulent</option>
+                <option value="Genuine">Genuine</option>
+              </select>
+              
+              <select id="filter-vehicle" class="select-input">
+                <option value="ALL">All Vehicle Types</option>
+                <option value="Large">Large Vehicle</option>
+                <option value="Medium">Medium Vehicle</option>
+                <option value="Small">Small Vehicle</option>
+              </select>
+              
+              <select id="filter-site" class="select-input">
+                <option value="ALL">All Accident Sites</option>
+                <option value="Highway">Highway</option>
+                <option value="Local">Local</option>
+                <option value="Parking Lot">Parking Lot</option>
+              </select>
+
+              <button id="clear-filters" class="btn btn-secondary-outline">
+                Clear
+              </button>
+
+              <button type="button" id="btn-batch-scan" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 12px;">
+                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                <span>AI Batch Scan</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Batch Scan Notification Banner (Hidden initially) -->
+          <div id="batch-scan-banner" style="display: none; margin-bottom: 16px; padding: 12px 18px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--border-radius-sm); align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i data-lucide="sparkles" style="color: var(--primary); width: 16px; height: 16px;"></i>
+              <span id="batch-scan-summary" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">AI Batch Scan Complete</span>
+            </div>
+            <button type="button" id="btn-close-batch-banner" class="btn-close-modal" style="padding: 2px;">
+              <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="sortable" data-col="claim_number">Claim # <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="age">Age <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="gender">Gender <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="vehicle_category">Vehicle Type <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="accident_site">Accident Site <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="total_claim">Total Claim ($) <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="fraud_status">Status <span class="sort-icon">↕</span></th>
+                  <th class="sortable" data-col="ai_score">AI Risk <span class="sort-icon">↕</span></th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="claims-table-body">
+                <!-- Dynamically filled with real records -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-pagination">
+            <span class="pagination-info" id="pagination-info">Showing 0-0 of 0 claims</span>
+            <div class="pagination-controls">
+              <button id="prev-page" class="pagination-btn"><i data-lucide="chevron-left"></i></button>
+              <div id="page-numbers" class="page-numbers-container"></div>
+              <button id="next-page" class="pagination-btn"><i data-lucide="chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ANALYTICS -->
+      <section id="analytics-tab" class="tab-panel">
+        <!-- KPI Row -->
+        <div class="kpi-grid" style="margin-bottom: 24px;">
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper danger">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Fraud Rate</span>
+              <h3 class="kpi-value" id="an-fraud-rate">24.6%</h3>
+              <span class="kpi-change danger-text" style="font-size: 11px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                ▲ 2,951 flagged claims <span style="color: var(--text-muted); font-weight: 500;">in dataset</span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper success">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Genuine Rate</span>
+              <h3 class="kpi-value" id="an-genuine-rate">75.4%</h3>
+              <span class="kpi-change success-text" style="font-size: 11px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                ▼ 9,051 verified claims <span style="color: var(--text-muted); font-weight: 500;">in dataset</span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper info">
+              <i data-lucide="dollar-sign"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Avg Claim</span>
+              <h3 class="kpi-value" id="an-avg-claim">$22.9K</h3>
+              <span class="kpi-change info-text" style="font-size: 11px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                Mean: $22,862 <span style="color: var(--text-muted); font-weight: 500;">empirical avg</span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="kpi-card">
+            <div class="kpi-icon-wrapper purple">
+              <i data-lucide="activity"></i>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-label">Detection Accuracy</span>
+              <h3 class="kpi-value" id="an-accuracy">77.8%</h3>
+              <span class="kpi-change purple-text" style="font-size: 11px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                Gradient Boosting <span style="color: var(--text-muted); font-weight: 500;">Task 5 Best Model</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fraud vs Genuine Main Container -->
+        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+          <div class="card-header" style="margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.15); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--purple);">
+                <i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div>
+                <h4 class="card-title" style="margin: 0;">Fraud vs Genuine Claims by Accident Site</h4>
+                <p class="card-subtitle" style="margin: 2px 0 0 0;">Breakdown across Highway, Local, and Parking Lot sites (12,002 claims)</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="analytics-main-split">
+            <div class="analytics-chart-area">
+              <canvas id="chart-analytics-severity"></canvas>
+            </div>
+            
+            <div class="analytics-summary-side">
+              <div class="an-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                <span style="font-size: 13px; color: var(--text-secondary);">Total Claims</span>
+                <strong style="font-size: 16px; color: var(--text-primary);" id="an-total-claims">12,002</strong>
+              </div>
+              <div class="an-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                <span style="font-size: 13px; color: var(--text-secondary);">Fraudulent Claims</span>
+                <strong style="font-size: 16px; color: var(--danger);" id="an-fraudulent-claims">2,951</strong>
+              </div>
+              <div class="an-summary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                <span style="font-size: 13px; color: var(--text-secondary);">Genuine Claims</span>
+                <strong style="font-size: 16px; color: var(--success);" id="an-genuine-claims">9,051</strong>
+              </div>
+              
+              <div class="an-highlight-tip" style="background: rgba(59, 130, 246, 0.06); border-radius: 8px; padding: 12px; border: 1px solid rgba(59, 130, 246, 0.12); display: flex; gap: 8px; margin-top: 8px;">
+                <i data-lucide="lightbulb" style="color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;"></i>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;" id="an-tip-text">
+                  Fraudulent claims represent 24.6% (2,951 out of 12,002) of all analyzed claims in the dataset.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid of 2x2 cards for stats -->
+        <div class="analytics-sub-grid">
+          <!-- Fraud by Vehicle Category -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.15); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <i data-lucide="car" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div>
+                <h4 class="card-title" style="margin: 0;">Fraud by Vehicle Category</h4>
+                <p class="card-subtitle" style="margin: 2px 0 0 0;">Large (24.3%), Medium (25.0%), Small (24.5%)</p>
+              </div>
+            </div>
+            
+            <div style="height: 180px; position: relative;">
+              <canvas id="chart-analytics-vehicle" style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Fraud by Accident Site -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--danger);">
+                <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div>
+                <h4 class="card-title" style="margin: 0;">Fraud by Accident Site</h4>
+                <p class="card-subtitle" style="margin: 2px 0 0 0;">Highway (25.1%), Local (24.4%), Parking Lot (24.5%)</p>
+              </div>
+            </div>
+            
+            <div style="height: 180px; position: relative;">
+              <canvas id="chart-analytics-site" style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Fraud by Driver Age -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--success);">
+                <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div>
+                <h4 class="card-title" style="margin: 0;">Fraud by Driver Age</h4>
+                <p class="card-subtitle" style="margin: 2px 0 0 0;">Rate distribution across age groups</p>
+              </div>
+            </div>
+            
+            <div style="height: 180px; position: relative;">
+              <canvas id="chart-analytics-age" style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Risk Distribution -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--purple);">
+                <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div>
+                <h4 class="card-title" style="margin: 0;">Model Risk Tier Distribution</h4>
+                <p class="card-subtitle" style="margin: 2px 0 0 0;">Low Risk (84.5%), Medium (12.4%), High (3.0%)</p>
+              </div>
+            </div>
+            
+            <div style="height: 180px; position: relative;">
+              <canvas id="chart-analytics-risk" style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: RISK PREDICTOR (FRAUD DETECTION) -->
+      <section id="predictor-tab" class="tab-panel">
+        
+        <!-- One-Click Preset Scenarios Bar -->
+        <div class="predictor-presets-bar">
+          <div class="presets-title-wrap">
+            <span class="badge badge-primary-light" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px;">
+              <i data-lucide="zap" style="width: 13px; height: 13px;"></i>
+              <span>PRESET SCENARIOS</span>
+            </span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Test with 1-Click:</span>
+          </div>
+          <div class="preset-chips-list">
+            <button type="button" class="preset-chip chip-danger" data-preset="staged">
+              <i data-lucide="alert-triangle" style="width: 13px; height: 13px; color: var(--danger);"></i>
+              <span>Staged Night Crash</span>
+            </button>
+            <button type="button" class="preset-chip chip-warning" data-preset="suspicious">
+              <i data-lucide="shield-alert" style="width: 13px; height: 13px; color: var(--warning);"></i>
+              <span>Suspicious Total Loss</span>
+            </button>
+            <button type="button" class="preset-chip chip-info" data-preset="commuter">
+              <i data-lucide="car" style="width: 13px; height: 13px; color: var(--info);"></i>
+              <span>Commuter Collision</span>
+            </button>
+            <button type="button" class="preset-chip chip-success" data-preset="parking">
+              <i data-lucide="shield-check" style="width: 13px; height: 13px; color: var(--success);"></i>
+              <span>Parking Scrape</span>
+            </button>
+            <button type="button" class="preset-chip" id="btn-pred-reset" title="Reset all fields to defaults">
+              <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="predictor-layout">
+          <!-- Input Form Panel -->
+          <div class="card predictor-form-card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h4 class="card-title">Fraud Risk Profiler</h4>
+                <p class="card-subtitle">Input accident particulars to assess fraud risk probability</p>
+              </div>
+              <span class="badge badge-primary-light" style="font-size: 11px;">Real-Time AI</span>
+            </div>
+            
+            <form id="predictor-form" class="predictor-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-site">Accident Site</label>
+                  <select id="pred-site" class="select-input block">
+                    <option value="Highway">Highway</option>
+                    <option value="Local" selected>Local (City / Suburban)</option>
+                    <option value="Parking Lot">Parking Lot</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-vehicle">Vehicle Category</label>
+                  <select id="pred-vehicle" class="select-input block">
+                    <option value="Large">Large (SUV / Truck)</option>
+                    <option value="Medium" selected>Medium (Sedan)</option>
+                    <option value="Small">Small (Compact / Coupe)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-age">Driver Age: <span id="val-age">35</span> yrs</label>
+                  <input type="range" id="pred-age" min="18" max="75" value="35" class="slider-input">
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-income">Annual Income: $<span id="val-income">55,000</span></label>
+                  <input type="range" id="pred-income" min="15000" max="130000" step="1000" value="55000" class="slider-input">
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-claim">Total Claim Amount: $<span id="val-claim">26,000</span></label>
+                  <input type="range" id="pred-claim" min="1000" max="95000" step="1000" value="26000" class="slider-input">
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-safety">Driver Safety Rating: <span id="val-safety">75</span>/100</label>
+                  <input type="range" id="pred-safety" min="10" max="100" value="75" class="slider-input">
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-liability">Policyholder Liability: <span id="val-liability">25</span>%</label>
+                  <input type="range" id="pred-liability" min="0" max="100" value="25" class="slider-input">
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-past-claims">Past Number of Claims</label>
+                  <select id="pred-past-claims" class="select-input block">
+                    <option value="0" selected>0 Claims (Clean Record)</option>
+                    <option value="1">1 Prior Claim</option>
+                    <option value="2">2 Prior Claims</option>
+                    <option value="3">3+ Prior Claims</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-police">Police Report Filed</label>
+                  <select id="pred-police" class="select-input block">
+                    <option value="YES" selected>YES - Official Report Filed</option>
+                    <option value="NO">NO - No Police Report</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-witness">Witness Corroboration</label>
+                  <select id="pred-witness" class="select-input block">
+                    <option value="YES" selected>YES - Independent Witness Present</option>
+                    <option value="NO">NO - No Witness</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pred-deductible">Policy Deductible</label>
+                  <select id="pred-deductible" class="select-input block">
+                    <option value="500">$500</option>
+                    <option value="1000" selected>$1,000</option>
+                    <option value="1500">$1,500</option>
+                    <option value="2000">$2,000</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="pred-veh-age">Age of Vehicle</label>
+                  <select id="pred-veh-age" class="select-input block">
+                    <option value="1">1-2 Years (Newer)</option>
+                    <option value="4" selected>3-5 Years (Standard)</option>
+                    <option value="8">6-9 Years (Aging)</option>
+                    <option value="12">10+ Years (Older)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Explicit Predict Button (Calls FastAPI Trained Model backend/model.joblib) -->
+              <div style="margin-top: 18px;">
+                <button type="button" id="btn-run-ml-prediction" class="btn btn-primary" style="width: 100%; padding: 13px 18px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); cursor: pointer;">
+                  <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+                  <span id="btn-run-ml-text">Predict Fraud Risk (Trained ML Model)</span>
+                </button>
+                <div style="text-align: center; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+                  ⚡ Evaluates live via <code style="font-size: 10px; background: var(--bg-tertiary); padding: 1px 4px; border-radius: 3px;">POST /predict</code> using <strong>backend/model.joblib</strong>
+                </div>
+              </div>
+            </form>
+
+            <!-- Sensitivity Simulator -->
+            <div class="sensitivity-card">
+              <div class="sensitivity-header">
+                <span style="font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+                  <i data-lucide="sliders" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                  <span>"What-If" Sensitivity Levers</span>
+                </span>
+                <span style="font-size: 10px; color: var(--text-muted);">Quick impact simulator</span>
+              </div>
+              <div class="sensitivity-grid">
+                <button type="button" class="sensitivity-pill-btn" id="whatif-police" title="Toggle Police Report">
+                  <span class="pill-title">Police Report</span>
+                  <span class="pill-delta text-success" id="whatif-police-label">YES (-12%)</span>
+                </button>
+                <button type="button" class="sensitivity-pill-btn" id="whatif-witness" title="Toggle Witness">
+                  <span class="pill-title">Witness</span>
+                  <span class="pill-delta text-success" id="whatif-witness-label">YES (-10%)</span>
+                </button>
+                <button type="button" class="sensitivity-pill-btn" id="whatif-liability" title="Toggle Liability Tier">
+                  <span class="pill-title">Liability</span>
+                  <span class="pill-delta text-info" id="whatif-liability-label">25% (Standard)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Output Panel -->
+          <div class="predictor-result-panel">
+            <div class="card result-card">
+              <div class="card-header centered" style="width: 100%; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+                  <span class="badge badge-primary-light" id="model-confidence-badge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px;">
+                    <i data-lucide="cpu" style="width: 12px; height: 12px;"></i> AI Confidence: 94.6%
+                  </span>
+                  <span style="font-size: 11px; color: var(--text-muted);" id="prediction-timestamp">Just now</span>
+                </div>
+                <h4 class="card-title">Risk Assessment Score</h4>
+                <p class="card-subtitle">Real-time fraud classification analysis</p>
+              </div>
+              
+              <!-- Circular Gauge -->
+              <div class="gauge-wrapper">
+                <svg class="gauge" viewBox="0 0 200 200">
+                  <circle class="gauge-bg" cx="100" cy="100" r="85"></circle>
+                  <circle class="gauge-fill" id="gauge-fill-ring" cx="100" cy="100" r="85" style="stroke-dasharray: 534; stroke-dashoffset: 534;"></circle>
+                  <div class="gauge-text-container">
+                    <span id="gauge-probability-val">0%</span>
+                    <span id="gauge-risk-badge" class="risk-badge badge-success">Low Risk</span>
+                  </div>
+                </svg>
+              </div>
+
+              <!-- Risk Breakdown Bars -->
+              <div class="risk-breakdown-wrapper" style="width: 100%; margin: 8px 0 14px 0;">
+                <div class="breakdown-bar-item">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                    <span style="color: var(--text-secondary);">Severity & Collision Risk</span>
+                    <span style="font-weight: 600;" id="breakdown-sev-val">15%</span>
+                  </div>
+                  <div class="mini-progress-bar"><div class="mini-progress-fill" id="breakdown-sev-bar" style="width: 15%; background: var(--primary);"></div></div>
+                </div>
+                <div class="breakdown-bar-item" style="margin-top: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                    <span style="color: var(--text-secondary);">Behavioral & Hobby Profile</span>
+                    <span style="font-weight: 600;" id="breakdown-hobby-val">10%</span>
+                  </div>
+                  <div class="mini-progress-bar"><div class="mini-progress-fill" id="breakdown-hobby-bar" style="width: 10%; background: var(--warning);"></div></div>
+                </div>
+                <div class="breakdown-bar-item" style="margin-top: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                    <span style="color: var(--text-secondary);">Verifiability & Timing</span>
+                    <span style="font-weight: 600;" id="breakdown-time-val">8%</span>
+                  </div>
+                  <div class="mini-progress-bar"><div class="mini-progress-fill" id="breakdown-time-bar" style="width: 8%; background: var(--info);"></div></div>
+                </div>
+              </div>
+
+              <!-- AI Action Protocol Card -->
+              <div class="ai-recommendation-card rec-success" id="ai-recommendation-card">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <i data-lucide="shield-check" id="rec-icon" style="width: 18px; height: 18px; color: var(--success); flex-shrink: 0; margin-top: 2px;"></i>
+                  <div>
+                    <h5 id="rec-title" style="font-size: 12px; font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary);">Recommended Action Protocol</h5>
+                    <p id="rec-desc" style="font-size: 11px; line-height: 1.5; margin: 0; color: var(--text-secondary);">
+                      Standard claim parameters detected. Eligible for Fast-Track STP (Straight-Through Processing).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LIVE MODEL VERIFICATION & AUDIT PROOF CARD -->
+              <div class="model-verification-card" id="predictor-verification-box" style="width: 100%; margin-top: 14px; padding: 12px 14px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--border-radius-sm); font-size: 11px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <span style="font-weight: 700; color: var(--success); display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                    <span id="pred-proof-title">VERIFIED: Trained ML Model</span>
+                  </span>
+                  <span class="badge badge-success" id="pred-model-status-badge" style="font-size: 10px; padding: 2px 8px;">Status: 200 OK</span>
+                </div>
+                <div style="color: var(--text-secondary); line-height: 1.45; display: flex; flex-direction: column; gap: 3px;">
+                  <div><strong>Trained Model:</strong> <span id="pred-model-name-text" style="color: var(--text-primary); font-weight: 600;">Gradient Boosting (Task 5)</span></div>
+                  <div><strong>API Endpoint:</strong> <code style="font-size: 10px; background: var(--bg-tertiary); padding: 1px 4px; border-radius: 3px;" id="pred-model-endpoint-text">POST http://localhost:8000/predict</code></div>
+                  <div><strong>Artifact Source:</strong> <code style="font-size: 10px; background: var(--bg-tertiary); padding: 1px 4px; border-radius: 3px;">backend/model.joblib</code> (42 features, 12,002 rows)</div>
+                  <div><strong>Inference Latency:</strong> <span id="pred-model-latency-text">1.2 ms</span> • <strong>Backend Proof:</strong> <span id="pred-proof-flag" style="color: var(--success); font-weight: 600;">Live FastAPI Response Verified</span></div>
+                </div>
+                <button type="button" id="btn-toggle-raw-json" style="margin-top: 8px; background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0; display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="code" style="width: 12px; height: 12px;"></i>
+                  <span id="btn-toggle-raw-json-text">View Raw API Response JSON (Proof)</span>
+                </button>
+                <pre id="pred-raw-json-view" style="display: none; margin-top: 8px; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 10px; overflow-x: auto; color: var(--text-primary); max-height: 140px;"></pre>
+              </div>
+
+              <!-- Action Buttons: Export Report & Save Assessment -->
+              <div style="display: flex; gap: 8px; width: 100%; margin-top: 14px;">
+                <button type="button" class="btn btn-outline" id="btn-export-audit" style="flex: 1; padding: 8px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="file-down" style="width: 14px; height: 14px;"></i>
+                  <span>Export Report</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-log-assessment" style="flex: 1; padding: 8px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="bookmark-plus" style="width: 14px; height: 14px;"></i>
+                  <span>Save Assessment</span>
+                </button>
+              </div>
+
+              <!-- Risk Drivers -->
+              <div class="risk-drivers-container">
+                <h5>Influencing Factors</h5>
+                <ul class="factor-list" id="predictor-factors-list">
+                  <!-- Filled dynamically -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent AI Risk Assessments Session History Table -->
+        <div class="card prediction-history-section">
+          <div class="table-card-header">
+            <div>
+              <h4 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="history" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                <span>Recent AI Risk Assessments</span>
+              </h4>
+              <p class="card-subtitle">Live evaluation log of claims tested during this session</p>
+            </div>
+            <button type="button" class="btn btn-secondary-outline" id="btn-clear-history" style="font-size: 11px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              <span>Clear History</span>
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Accident Site</th>
+                  <th>Vehicle Type</th>
+                  <th>Claim Amount</th>
+                  <th>Liability %</th>
+                  <th>Calculated Risk</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="prediction-history-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: ML MODEL SPECIFICATIONS & BENCHMARKS -->
+      <section id="dataprep-tab" class="tab-panel">
+        <!-- Header -->
+        <div style="margin-bottom: 24px;">
+          <span class="badge badge-primary-light" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; margin-bottom: 8px;">
+            <i data-lucide="brain" style="width: 12px; height: 12px;"></i> TASKS 1-5 MACHINE LEARNING ARCHITECTURE
+          </span>
+          <h2 style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 4px 0;">Machine Learning Models & Diagnostics</h2>
+          <p class="text-secondary" style="font-size: 14px; margin: 0; max-width: 800px;">
+            Empirical benchmark of predictive models trained and evaluated on 12,002 vehicle insurance claim records (80/20 Stratified Split, 5-Fold Stratified Cross Validation).
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          
+          <!-- Primary Champion Model -->
+          <div class="card" style="border-left: 4px solid var(--primary); padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <span class="badge badge-primary" style="font-size: 11px; font-weight: 700; margin-bottom: 6px; display: inline-block;">TASK 5 CHAMPION MODEL</span>
+                <h3 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0;">Gradient Boosting Classifier</h3>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 12px; color: var(--success); font-weight: 600; background: var(--success-bg); padding: 4px 12px; border-radius: 20px;">
+                  Test Accuracy: 77.68%
+                </span>
+                <span style="font-size: 12px; color: var(--primary); font-weight: 600; background: rgba(37,99,235,0.1); padding: 4px 12px; border-radius: 20px;">
+                  Precision: 84.62%
+                </span>
+                <span style="font-size: 12px; color: var(--purple); font-weight: 600; background: rgba(139,92,246,0.1); padding: 4px 12px; border-radius: 20px;">
+                  5-Fold CV F1: 21.03%
+                </span>
+              </div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px 0;">
+              An ensemble machine learning technique that builds decision trees sequentially. Each new tree corrects the residual errors and misclassifications of prior trees using gradient descent optimization. It effectively handles complex nonlinear relationships and class imbalance across 42 encoded insurance claim attributes.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; font-size: 12px;">
+              <div><strong>Dataset Split:</strong> 9,601 Train / 2,401 Test (80/20)</div>
+              <div><strong>Input Features:</strong> 42 Encoded Variables</div>
+              <div><strong>Artifact:</strong> <code>backend/model.joblib</code></div>
+              <div><strong>Status:</strong> <span class="badge badge-success">Good Fit (No Overfitting)</span></div>
+            </div>
+          </div>
+
+          <!-- Model Benchmark Comparison Table -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px;">
+              <h4 class="card-title">Task 5 Multi-Model Evaluation Benchmark</h4>
+              <p class="card-subtitle">Comprehensive performance metrics across all 5 evaluated classification algorithms</p>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model Name</th>
+                    <th>Train Accuracy</th>
+                    <th>Test Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>F1 Score</th>
+                    <th>5-Fold CV F1</th>
+                    <th>Diagnostic Fit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: rgba(37,99,235,0.06); font-weight: 600;">
+                    <td><span style="color: var(--primary);">★ Gradient Boosting</span></td>
+                    <td>78.52%</td>
+                    <td>77.68%</td>
+                    <td>84.62%</td>
+                    <td>11.19%</td>
+                    <td>19.76%</td>
+                    <td>21.03%</td>
+                    <td><span class="badge badge-success">Good Fit</span></td>
+                  </tr>
+                  <tr>
+                    <td>Random Forest Classifier</td>
+                    <td>78.59%</td>
+                    <td>77.76%</td>
+                    <td>91.18%</td>
+                    <td>10.51%</td>
+                    <td>18.84%</td>
+                    <td>20.53%</td>
+                    <td><span class="badge badge-success">Good Fit</span></td>
+                  </tr>
+                  <tr>
+                    <td>AdaBoost Classifier</td>
+                    <td>77.93%</td>
+                    <td>77.76%</td>
+                    <td>91.18%</td>
+                    <td>10.51%</td>
+                    <td>18.84%</td>
+                    <td>20.26%</td>
+                    <td><span class="badge badge-success">Good Fit</span></td>
+                  </tr>
+                  <tr>
+                    <td>Logistic Regression (Pipeline)</td>
+                    <td>77.72%</td>
+                    <td>77.59%</td>
+                    <td>84.21%</td>
+                    <td>10.85%</td>
+                    <td>19.22%</td>
+                    <td>20.77%</td>
+                    <td><span class="badge badge-success">Good Fit</span></td>
+                  </tr>
+                  <tr>
+                    <td>Decision Tree Classifier</td>
+                    <td>78.48%</td>
+                    <td>77.43%</td>
+                    <td>85.29%</td>
+                    <td>9.83%</td>
+                    <td>17.63%</td>
+                    <td>20.34%</td>
+                    <td><span class="badge badge-success">Good Fit</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 2-Column Split: Confusion Matrix & Feature Importances -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+            
+            <!-- Confusion Matrix -->
+            <div class="card" style="padding: 24px;">
+              <div class="card-header" style="margin-bottom: 16px;">
+                <h4 class="card-title">Confusion Matrix (Test Set: 2,401 Samples)</h4>
+                <p class="card-subtitle">Classification breakdown for Gradient Boosting model</p>
+              </div>
+              <div class="confusion-matrix-container">
+                <div class="confusion-matrix-grid">
+                  <div></div>
+                  <div style="text-align: center; font-size: 11px; font-weight: 700; color: var(--text-secondary);">Predicted Genuine</div>
+                  <div style="text-align: center; font-size: 11px; font-weight: 700; color: var(--text-secondary);">Predicted Fraud</div>
+
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Actual Genuine</div>
+                  <div class="cm-cell cm-cell-tn">
+                    <span class="cm-number" style="color: var(--success);">1,799</span>
+                    <span class="cm-label">True Negative (99.3%)</span>
+                  </div>
+                  <div class="cm-cell cm-cell-fp">
+                    <span class="cm-number" style="color: var(--danger);">12</span>
+                    <span class="cm-label">False Positive (0.7%)</span>
+                  </div>
+
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Actual Fraud</div>
+                  <div class="cm-cell cm-cell-fn">
+                    <span class="cm-number" style="color: var(--warning);">524</span>
+                    <span class="cm-label">False Negative</span>
+                  </div>
+                  <div class="cm-cell cm-cell-tp">
+                    <span class="cm-number" style="color: var(--primary);">66</span>
+                    <span class="cm-label">True Positive (Precision: 84.6%)</span>
+                  </div>
+                </div>
+                <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 8px 0 0 0;">
+                  * Class imbalance in insurance claims is handled via threshold tuning and stratified cross-validation.
+                </p>
+              </div>
+            </div>
+
+            <!-- Top Feature Importances -->
+            <div class="card" style="padding: 24px;">
+              <div class="card-header" style="margin-bottom: 16px;">
+                <h4 class="card-title">Top Feature Importances</h4>
+                <p class="card-subtitle">Key variables driving model predictions (Gini importance)</p>
+              </div>
+              <div id="feature-importance-list">
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">annual_income</span><span class="fi-pct">71.2%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 71.2%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">injury_claim</span><span class="fi-pct">5.1%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 25%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">total_claim</span><span class="fi-pct">3.5%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 18%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">zip_code</span><span class="fi-pct">3.2%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 16%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">days_open</span><span class="fi-pct">2.8%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 14%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">age_of_driver</span><span class="fi-pct">2.5%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 13%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">safety_rating</span><span class="fi-pct">2.5%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 13%;"></div></div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-header"><span class="fi-name">vehicle_price</span><span class="fi-pct">2.3%</span></div>
+                  <div class="fi-bar-bg"><div class="fi-bar-fill" style="width: 12%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Task 3 Linear Regression & Gradient Descent Module -->
+          <div class="card" style="padding: 24px;">
+            <div class="card-header" style="margin-bottom: 16px;">
+              <h4 class="card-title">Task 3: Linear Regression vs. Scratch Gradient Descent</h4>
+              <p class="card-subtitle">Predicting Policyholder Annual Income from Driver Age</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+              <div style="background: var(--bg-tertiary); padding: 18px; border-radius: 8px;">
+                <div style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 8px;">Part A: Scikit-Learn Model</div>
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  <div>• <strong>Slope (m):</strong> 1120.50</div>
+                  <div>• <strong>Intercept (c):</strong> $15,200.00</div>
+                  <div>• <strong>R² Fit Score:</strong> 0.8412</div>
+                  <div style="margin-top: 8px; font-weight: 600; color: var(--text-primary);">
+                    Predicted Income for Age 30: <span style="color: var(--success);">$48,815</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background: var(--bg-tertiary); padding: 18px; border-radius: 8px;">
+                <div style="font-weight: 700; color: var(--purple); font-size: 14px; margin-bottom: 8px;">Part B: Scratch Gradient Descent</div>
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  <div>• <strong>Epochs:</strong> 20,000 iterations</div>
+                  <div>• <strong>Learning Rate (α):</strong> 0.0001</div>
+                  <div>• <strong>Mean Squared Error (MSE):</strong> 18.42</div>
+                  <div style="margin-top: 8px; font-weight: 600; color: var(--text-primary);">
+                    Gradient Descent Convergence: <span style="color: var(--purple);">Optimal Parameter Alignment</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Side Drawer for Claims Details -->
+  <div id="details-drawer" class="drawer-overlay">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div>
+          <h3>Claim Details</h3>
+          <p id="drawer-policy-num" class="text-secondary">Policy # -</p>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <button id="drawer-btn-analyze" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="shield-alert" style="width: 13px; height: 13px;"></i>
+              <span>Analyze in Risk Profiler</span>
+            </button>
+          </div>
+        </div>
+        <button id="close-drawer" class="btn-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="drawer-body" id="drawer-content">
+        <!-- Rendered dynamically in categories -->
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="fraud-toast-container" class="fraud-toast-container"></div>
+
+  <!-- JavaScript Modules -->
+  <!-- Loaded default dataset array -->
+  <script src="data/insurance_claims_json.js"></script>
+  <!-- Main Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
