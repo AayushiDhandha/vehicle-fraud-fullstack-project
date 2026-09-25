@@ -1,0 +1,30 @@
+{
+  "name": "front-end",
+  "version": "1.0.0",
+  "description": "A premium, highly interactive, client-side single-page application (SPA) built to explore, optimize, and analyze vehicle insurance claims and detect fraudulent patterns. The application uses the Minitab **Vehicle Insurance Fraud** dataset (1000 claims, 39 features) and provides a professional suite of visualization, statistical analysis, predictive modeling, and data preparation tools.",
+  "main": "app.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^8.2.1"
+  },
+  "dependencies": {
+    "detect-libc": "^2.1.2",
+    "fdir": "^6.5.0",
+    "lightningcss": "^1.33.0",
+    "lightningcss-win32-x64-msvc": "^1.33.0",
+    "nanoid": "^3.3.18",
+    "picocolors": "^1.1.1",
+    "picomatch": "^4.0.5",
+    "postcss": "^8.5.26",
+    "rolldown": "^1.2.4",
+    "source-map-js": "^1.2.1",
+    "tinyglobby": "^0.2.17"
+  }
+}
